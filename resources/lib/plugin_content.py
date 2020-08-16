@@ -77,14 +77,13 @@ class PluginContent(object):
             dbid = self.dbid
             if self.dbtype == 'tvshow' and self.idtype in ['season', 'episode']:
                 dbid = self._gettvshowid()
-                if self.idtype in ['episode','season']:
-                    self.dbtype = self.idtype
-                    self.key_items = '%ss' % self.dbtype
+                self.dbtype = self.idtype
+                self.key_items = '%ss' % self.dbtype
 
             result = json_call(self.method_details,
-                                properties=self.properties,
-                                params={self.param: int(dbid)}
-                                )
+                               properties=self.properties,
+                               params={self.param: int(dbid)}
+                               )
 
             result = result['result'][self.key_details]
 
@@ -112,9 +111,9 @@ class PluginContent(object):
             elif self.dbtype == 'season':
                 try:
                     season = json_call('VideoLibrary.GetSeasonDetails',
-                                              properties=JSON_MAP['season_properties'],
-                                              params={'seasonid': int(self.dbid)}
-                                              )
+                                       properties=JSON_MAP['season_properties'],
+                                       params={'seasonid': int(self.dbid)}
+                                       )
 
                     season = season['result']['seasondetails']
                     result.update(season)
