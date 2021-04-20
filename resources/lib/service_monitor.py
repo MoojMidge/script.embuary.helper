@@ -110,7 +110,7 @@ class Service(xbmc.Monitor):
                 background_grab_elapsed_time += service_interval
                 background_refresh_elapsed_time += service_interval
                 widget_refresh_elapsed_time += service_interval
-                cleanup_elapsed_time += elapsed_time
+                cleanup_elapsed_time += service_interval
                 continue
                 
             ''' Grab fanarts
