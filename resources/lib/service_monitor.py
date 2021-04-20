@@ -86,66 +86,72 @@ class Service(xbmc.Monitor):
 
         service_interval = xbmc.getInfoLabel('Skin.String(ServiceInterval)') or ADDON.getSetting('service_interval')
         service_interval = float(service_interval)
-        background_interval = xbmc.getInfoLabel('Skin.String(BackgroundInterval)') or ADDON.getSetting('background_interval')
-        background_interval = int(background_interval)
-        widget_refresh = 0
-        get_backgrounds = 200
+
+        background_refresh_interval = xbmc.getInfoLabel('Skin.String(BackgroundInterval)') or ADDON.getSetting('background_interval')
+        background_refresh_interval = int(background_refresh_interval)
+        background_refresh_elapsed_time = background_refresh_interval
+
+        widget_refresh_interval = 600
+        widget_refresh_elapsed_time = 0
+
+        background_grab_interval = 20 * background_refresh_interval
+        background_grab_elapsed_time = background_grab_interval
 
         while not self.abortRequested() and not self.restart:
 
             ''' Only run timed tasks if screensaver is inactive to avoid keeping NAS/servers awake
             '''
-            if not self.screensaver:
+            if self.screensaver:
+                self.waitForAbort(service_interval)
+                background_grab_elapsed_time += service_interval
+                background_refresh_elapsed_time += service_interval
+                widget_refresh_elapsed_time += service_interval
+                continue
+                
+            ''' Grab fanarts
+            '''
+            if background_grab_elapsed_time >= background_grab_interval:
+                log('Start new fanart grabber process')
+                arts = self.grabfanart()
+                background_grab_elapsed_time = 0
+                background_refresh_elapsed_time = background_refresh_interval
 
-                ''' Grab fanarts
-                '''
-                if get_backgrounds >= 200:
-                    log('Start new fanart grabber process')
-                    arts = self.grabfanart()
-                    get_backgrounds = 0
+            ''' Set background properties
+            '''
+            if background_refresh_elapsed_time >= background_refresh_interval:
+                if arts.get('all'):
+                    self.setfanart('EmbuaryBackground', arts['all'])
+                if arts.get('videos'):
+                    self.setfanart('EmbuaryBackgroundVideos', arts['videos'])
+                if arts.get('music'):
+                    self.setfanart('EmbuaryBackgroundMusic', arts['music'])
+                if arts.get('movies'):
+                    self.setfanart('EmbuaryBackgroundMovies', arts['movies'])
+                if arts.get('tvshows'):
+                    self.setfanart('EmbuaryBackgroundTVShows', arts['tvshows'])
+                if arts.get('musicvideos'):
+                    self.setfanart('EmbuaryBackgroundMusicVideos', arts['musicvideos'])
+                if arts.get('artists'):
+                    self.setfanart('EmbuaryBackgroundMusic', arts['artists'])
 
-                else:
-                    get_backgrounds += service_interval
+                background_refresh_elapsed_time = 0
 
-                ''' Set background properties
-                '''
-                if background_interval >= 10:
-                    if arts.get('all'):
-                        self.setfanart('EmbuaryBackground', arts['all'])
-                    if arts.get('videos'):
-                        self.setfanart('EmbuaryBackgroundVideos', arts['videos'])
-                    if arts.get('music'):
-                        self.setfanart('EmbuaryBackgroundMusic', arts['music'])
-                    if arts.get('movies'):
-                        self.setfanart('EmbuaryBackgroundMovies', arts['movies'])
-                    if arts.get('tvshows'):
-                        self.setfanart('EmbuaryBackgroundTVShows', arts['tvshows'])
-                    if arts.get('musicvideos'):
-                        self.setfanart('EmbuaryBackgroundMusicVideos', arts['musicvideos'])
-                    if arts.get('artists'):
-                        self.setfanart('EmbuaryBackgroundMusic', arts['artists'])
+            ''' Blur backgrounds
+            '''
+            if condition('Skin.HasSetting(BlurEnabled)'):
+                radius = xbmc.getInfoLabel('Skin.String(BlurRadius)') or ADDON.getSetting('blur_radius')
+                ImageBlur(radius=radius)
 
-                    background_interval = 0
-
-                else:
-                    background_interval += service_interval
-
-                ''' Blur backgrounds
-                '''
-                if condition('Skin.HasSetting(BlurEnabled)'):
-                    radius = xbmc.getInfoLabel('Skin.String(BlurRadius)') or ADDON.getSetting('blur_radius')
-                    ImageBlur(radius=radius)
-
-                ''' Refresh widgets
-                '''
-                if widget_refresh >= 600:
-                    reload_widgets(instant=True)
-                    widget_refresh = 0
-
-                else:
-                    widget_refresh += service_interval
+            ''' Refresh widgets
+            '''
+            if widget_refresh_elapsed_time >= widget_refresh_interval:
+                reload_widgets(instant=True)
+                widget_refresh_elapsed_time = 0
 
             self.waitForAbort(service_interval)
+            background_grab_elapsed_time += service_interval
+            background_refresh_elapsed_time += service_interval
+            widget_refresh_elapsed_time += service_interval
 
         self.stop()
 
