@@ -96,6 +96,10 @@ class Service(xbmc.Monitor):
 
         background_grab_interval = 20 * background_refresh_interval
         background_grab_elapsed_time = background_grab_interval
+        
+        cleanup_interval_days = 30
+        cleanup_interval = cleanup_interval_days * 24 * 60 * 60
+        cleanup_elapsed_time = 0
 
         while not self.abortRequested() and not self.restart:
 
@@ -106,6 +110,7 @@ class Service(xbmc.Monitor):
                 background_grab_elapsed_time += service_interval
                 background_refresh_elapsed_time += service_interval
                 widget_refresh_elapsed_time += service_interval
+                cleanup_elapsed_time += elapsed_time
                 continue
                 
             ''' Grab fanarts
@@ -148,10 +153,17 @@ class Service(xbmc.Monitor):
                 reload_widgets(instant=True)
                 widget_refresh_elapsed_time = 0
 
+            ''' Cleanup old addon data
+            '''
+            if cleanup_elapsed_time >= cleanup_interval:
+                addon_data_cleanup(cleanup_interval_days)
+                cleanup_elapsed_time = 0
+
             self.waitForAbort(service_interval)
             background_grab_elapsed_time += service_interval
             background_refresh_elapsed_time += service_interval
             widget_refresh_elapsed_time += service_interval
+            cleanup_elapsed_time += service_interval
 
         self.stop()
 
