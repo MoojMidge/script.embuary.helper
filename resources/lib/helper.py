@@ -432,7 +432,7 @@ def set_library_tags(tags,whitelist=None,save=True,clear=False):
         addon_data('tags_whitelist.' + xbmc.getSkinDir() +'.data', whitelist)
 
 
-def addon_data_cleanup(number_of_days=60):
+def addon_data_cleanup(number_of_days=30):
     time_in_secs = time.time() - (number_of_days * 24 * 60 * 60)
 
     ''' Image storage maintaining. Deletes all created images which were unused in the
