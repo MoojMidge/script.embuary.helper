@@ -102,6 +102,9 @@ def get_date(date_time):
     return date_obj
 
 
+def get_seconds_str(seconds):
+    return str(datetime.datetime.timedelta(seconds=seconds))
+
 def execute(cmd):
     log('Execute: %s' % cmd, DEBUG)
     xbmc.executebuiltin(cmd)
