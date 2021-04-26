@@ -840,8 +840,6 @@ def whitelisttags(params):
 
 
 def refreshinfodialog(params):
-    cdbid = xbmc.getInfoLabel('Container(2000).ListItem.DBID')
-    cdbtype = xbmc.getInfoLabel('Container(2000).ListItem.DBType')
     ldbid = xbmc.getInfoLabel('ListItem.DBID')
     ldbtype = xbmc.getInfoLabel('ListItem.DBType')
     force = params.get('force')
@@ -849,12 +847,11 @@ def refreshinfodialog(params):
     if not ldbid or not ldbtype:
         return
 
-    if cdbid != ldbid or cdbtype != ldbtype:
-        addon = get_addon('context.item.extras')
-        if addon:
-            extras_path = '%s../%s/' if ldbtype == 'episode' else '%s%s/'
-            extras_path = extras_path % (xbmc.getInfoLabel('ListItem.Path'), addon.getSetting('extras-folder'))
-            lookforfile(params={'file': extras_path, 'prop': 'HasExtras'})
+    addon = get_addon('context.item.extras')
+    if addon:
+        extras_path = '%s../%s/' if ldbtype == 'episode' else '%s%s/'
+        extras_path = extras_path % (xbmc.getInfoLabel('ListItem.Path'), addon.getSetting('extras-folder'))
+        lookforfile(params={'file': extras_path, 'prop': 'HasExtras'})
 
     if force:
         plugin = PluginContent({'dbid': ldbid, 'type': ldbtype, 'infoOnly': True},list())
